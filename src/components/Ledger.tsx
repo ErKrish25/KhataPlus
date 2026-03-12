@@ -100,6 +100,11 @@ const CONTACT_CATEGORIES: Array<{ value: ContactCategory; label: string }> = [
   { value: 'individual', label: 'Individual' },
 ];
 
+function formatCompactQuantity(value: number): string {
+  if (Number.isInteger(value)) return String(value);
+  return value.toFixed(2).replace(/\.?0+$/, '');
+}
+
 
 export function Ledger({ userId, displayName }: LedgerProps) {
   const toast = useToast();
@@ -158,6 +163,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
   const [inventoryCategoryCustom, setInventoryCategoryCustom] = useState('');
   const [editInventoryCategoryCustom, setEditInventoryCategoryCustom] = useState('');
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<
     | { kind: 'contact'; id: string; name: string }
     | { kind: 'entry'; id: string }
@@ -1150,17 +1156,6 @@ export function Ledger({ userId, displayName }: LedgerProps) {
     setInvoiceLines((prev) => prev.filter((_, idx) => idx !== index));
   }
 
-  function openNewInvoiceForm() {
-    setEditingInvoiceId(null);
-    setInvoiceParty('');
-    setInvoiceNote('');
-    setInvoiceSettlementAmount('');
-    setInvoiceDate(new Date().toISOString().slice(0, 10));
-    setInvoiceLines([]);
-    setInvoiceLineDraft({ item_id: '', quantity: '', rate: '' });
-    setShowInvoiceForm(true);
-  }
-
   function resetVoucherForm() {
     setVoucherParty('');
     setVoucherAmount('');
@@ -1849,10 +1844,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
     return `${typeLabel} • ${party}`;
   }
 
-  function formatCompactQuantity(value: number): string {
-    if (Number.isInteger(value)) return String(value);
-    return value.toFixed(2).replace(/\.?0+$/, '');
-  }
+
 
   function summarizeInvoiceLines(invoiceId: string): string | null {
     const relatedLines = invoiceLinesData.filter((line) => line.invoice_id === invoiceId);
@@ -1926,8 +1918,8 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 <div className="brand-row">
                   <h2>{displayName}</h2>
                 </div>
-                <button className="icon-btn" onClick={() => setShowLogoutConfirm(true)} aria-label="Sign out">
-                  ↦
+                <button className="icon-btn" onClick={() => setShowSettingsMenu(true)} aria-label="Settings">
+                  ⚙
                 </button>
               </div>
 
@@ -1985,7 +1977,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               {showAddPartyForm && (
                 <div className="add-party-overlay">
                   <form onSubmit={addContact} className="add-party-sheet stack">
-                    <h4>Add Customer</h4>
+                    <h4>Add Party</h4>
                     <input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -2025,7 +2017,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               )}
 
               <button className="fab-add with-footer" onClick={() => setShowAddPartyForm(true)}>
-                + Add Customer
+                + Add Party
               </button>
             </div>
           </section>
@@ -2223,7 +2215,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                     className="invoice-history-card"
                     onClick={() => txn.invoiceId ? setInvoiceActionTargetId(txn.invoiceId) : null}
                   >
-                    <div className="invoice-history-left">
+                    <div className="invoice-history-left" style={{ flex: 1 }}>
                       <div className={`txn-type-icon ${cfg.cls}`}>{cfg.icon}</div>
                       <div>
                         <p className="invoice-party">{txn.party}</p>
@@ -2233,21 +2225,32 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                         </p>
                       </div>
                     </div>
-                    <div className="invoice-history-right">
+                    <div className="invoice-history-right" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                       <p className={cfg.sign === '+' ? 'amount-positive' : cfg.sign === '-' ? 'amount-negative' : ''}>
                         {cfg.sign}₹{txn.amount.toFixed(0)}
                       </p>
                       <p className="invoice-date">{formatDateDDMMYY(txn.date)}</p>
                     </div>
+                    {txn.invoiceId && (
+                      <button
+                        className="icon-btn"
+                        style={{ marginLeft: '8px', padding: '6px' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openInvoiceEditor(txn.invoiceId!);
+                        }}
+                        aria-label="Edit Invoice"
+                      >
+                        ✏️
+                      </button>
+                    )}
                   </div>
                 );
               })}
               {unifiedTransactions.length === 0 && <p className="muted empty-text">No transactions yet. Tap a voucher type above to create one!</p>}
             </div>
 
-            <button className="fab-add with-footer" onClick={() => openNewInvoiceForm()}>
-              + New Invoice
-            </button>
+
           </div>
         </section>
       ) : section === 'inventory' ? (inventoryView === 'group' ? (
@@ -2595,7 +2598,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 <button type="button" className="icon-btn" onClick={() => setReportsView('hub')}>←</button>
               )}
               <h2>{reportsView === 'hub' ? 'Reports' : reportsView === 'daybook' ? 'Day Book' : reportsView === 'cashbook' ? 'Cash/Bank Book' : reportsView === 'trial_balance' ? 'Trial Balance' : reportsView === 'profit_loss' ? 'Profit & Loss' : reportsView === 'balance_sheet' ? 'Balance Sheet' : reportsView === 'outstanding' ? 'Outstanding' : 'Stock Summary'}</h2>
-              <button type="button" className="icon-btn" onClick={() => setShowLogoutConfirm(true)}>⚙</button>
+              <button type="button" className="icon-btn" onClick={() => setShowSettingsMenu(true)}>⚙</button>
             </div>
           </div>
 
@@ -4070,7 +4073,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               value={manualBarcodeInput}
               onChange={(e) => setManualBarcodeInput(e.target.value)}
               placeholder="Enter barcode manually"
-              autoFocus={!cameraActive}
+              autoFocus={false}
             />
             <div className="row">
               <button type="button" className="link" onClick={() => closeBarcodeScanner()}>
@@ -4123,23 +4126,61 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       )}
 
       {showLogoutConfirm && (
-        <div className="entry-edit-overlay">
-          <div className="entry-edit-modal stack">
-            <h4>Log out?</h4>
-            <p className="muted">Are you sure you want to log out of this account?</p>
-            <div className="row">
+        <div className="add-party-overlay" style={{ zIndex: 60 }}>
+          <div className="add-party-sheet stack" style={{ textAlign: 'center', padding: '32px 24px' }}>
+            <h3 style={{ marginBottom: '8px' }}>Log Out</h3>
+            <p className="muted" style={{ marginBottom: '24px' }}>Are you sure you want to sign out of KhataPlus?</p>
+            <div className="row" style={{ marginTop: 0 }}>
               <button type="button" className="link" onClick={() => setShowLogoutConfirm(false)}>
                 Cancel
               </button>
               <button
                 type="button"
-                className="danger-solid"
+                className="add-party-save-btn"
+                style={{ background: 'var(--danger)' }}
                 onClick={() => {
                   setShowLogoutConfirm(false);
                   void signOut();
                 }}
               >
-                Log out
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSettingsMenu && (
+        <div className="add-party-overlay" style={{ zIndex: 50 }}>
+          <div className="settings-sheet">
+            <div className="settings-header">
+              <h3>Settings</h3>
+              <button type="button" className="icon-btn" onClick={() => setShowSettingsMenu(false)}>✕</button>
+            </div>
+
+            <div className="settings-menu">
+              <button type="button" className="settings-item" onClick={() => {
+                setShowSettingsMenu(false);
+                toast.show('Profile settings coming soon', 'info');
+              }}>
+                <span className="settings-item-icon">👤</span>
+                <span>My Profile</span>
+              </button>
+
+              <button type="button" className="settings-item" onClick={() => {
+                setShowSettingsMenu(false);
+                toast.show('Export functionality coming soon', 'info');
+              }}>
+                <span className="settings-item-icon">📄</span>
+                <span>Export Data</span>
+              </button>
+
+              <button type="button" className="settings-item settings-item-danger" onClick={() => {
+                setShowSettingsMenu(false);
+                setShowLogoutConfirm(true);
+              }}>
+                <span className="settings-item-icon">🚪</span>
+                <span>Log Out</span>
               </button>
             </div>
           </div>
