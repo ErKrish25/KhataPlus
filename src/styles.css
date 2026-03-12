@@ -1128,8 +1128,8 @@ button.link:hover {
   bottom: 0;
   width: min(460px, 100%);
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
   padding: 8px var(--screen-gutter) calc(10px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.96);
