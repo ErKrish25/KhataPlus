@@ -2411,14 +2411,21 @@ button.link:hover {
 .barcode-scan-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  display: grid;
-  place-items: center;
-  z-index: 100;
   padding: 16px;
   animation: overlayFadeIn var(--transition-normal) both;
+}
+
+/* ───────────────────── EDGE SWIPE DETECTOR ───────────────────── */
+.edge-swipe-detector {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 15px;
+  z-index: 99;
+  /* invisible but captures touch */
+  background: transparent;
+  touch-action: none;
 }
 
 @media (max-width: 900px) {

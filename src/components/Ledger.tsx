@@ -1843,7 +1843,112 @@ export function Ledger({ userId, displayName }: LedgerProps) {
     const party = fields.PARTY?.trim() || 'Party';
     return `${typeLabel} • ${party}`;
   }
+  // ─── SWIPE TO GO BACK LOGIC ───
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
 
+  function handleTouchStart(e: React.TouchEvent) {
+    if (e.touches.length > 0) {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    }
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (e.changedTouches.length === 0) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const dx = touchEndX - touchStartX.current;
+    const dy = Math.abs(touchEndY - touchStartY.current);
+
+    // Detect a right swipe that started from the left edge
+    // Swipe needs to start within the first 30px from the left, travel right by at least 60px,
+    // and be mostly horizontal (dx > dy).
+    if (touchStartX.current <= 30 && dx > 60 && dx > dy) {
+      handleGoBack();
+    }
+  }
+
+  function handleGoBack() {
+    // 1. Close overlays first
+    if (showLogoutConfirm) {
+      setShowLogoutConfirm(false);
+      return;
+    }
+    if (showSettingsMenu) {
+      setShowSettingsMenu(false);
+      return;
+    }
+    if (deleteDialog) {
+      setDeleteDialog(null);
+      return;
+    }
+    if (showAddPartyForm) {
+      setShowAddPartyForm(false);
+      return;
+    }
+    if (showAddInventoryForm) {
+      setShowAddInventoryForm(false);
+      return;
+    }
+    if (cameraActive) {
+      closeBarcodeScanner();
+      return;
+    }
+
+    // 2. Drafts/Edit modals next
+    if (editContactDraft) {
+      setEditContactDraft(null);
+      return;
+    }
+    if (editInventoryItemDraft) {
+      setEditInventoryItemDraft(null);
+      return;
+    }
+    if (editingInvoiceId) {
+      setEditingInvoiceId(null);
+      return;
+    }
+    if (invoiceActionTargetId) {
+      setInvoiceActionTargetId(null);
+      return;
+    }
+
+    if (movementActionDraft) {
+      setMovementActionDraft(null);
+      return;
+    }
+
+    // 3. Voucher & Invoice Contexts
+    if (activeVoucherType) {
+      setActiveVoucherType(null);
+      return;
+    }
+
+    // 4. Sub-views logic based on current active section
+    if (section === 'dashboard') {
+      if (selectedContactId) {
+        setSelectedContactId('');
+        return;
+      }
+    } else if (section === 'inventory') {
+      if (selectedInventoryItemId) {
+        setSelectedInventoryItemId('');
+        return;
+      }
+      if (inventoryView !== 'list') {
+        setInventoryView('list');
+        return;
+      }
+    } else if (section === 'reports') {
+      if (reportsView !== 'hub') {
+        setReportsView('hub');
+        return;
+      }
+    }
+  }
 
 
   function summarizeInvoiceLines(invoiceId: string): string | null {
@@ -1909,7 +2014,12 @@ export function Ledger({ userId, displayName }: LedgerProps) {
   }
 
   return (
-    <div className="ledger-shell">
+    <div
+      className="ledger-shell"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="edge-swipe-detector" />
       {section === 'dashboard' ? (
         !selectedContact ? (
           <section className="ledger-home">
