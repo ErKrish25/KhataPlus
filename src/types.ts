@@ -1,6 +1,6 @@
 export type ContactCategory =
   | 'sundry_creditor'
-  | 'sundry_debitor'
+  | 'sundry_debtor'
   | 'cash_in_hand'
   | 'capital_account'
   | 'loans_liability'

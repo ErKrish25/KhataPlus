@@ -82,7 +82,7 @@ const INVENTORY_UNITS = [
 
 const CONTACT_CATEGORIES: Array<{ value: ContactCategory; label: string }> = [
   { value: 'sundry_creditor', label: 'Sundry Creditor' },
-  { value: 'sundry_debitor', label: 'Sundry Debtor' },
+  { value: 'sundry_debtor', label: 'Sundry Debtor' },
   { value: 'cash_in_hand', label: 'Cash-in-Hand' },
   { value: 'capital_account', label: 'Capital Account' },
   { value: 'loans_liability', label: 'Loans (Liability)' },
@@ -595,7 +595,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
 
   // ─── REPORTS: Balance Sheet ───
   const balanceSheet = useMemo(() => {
-    const assetCategories = new Set(['cash_in_hand', 'fixed_assets', 'investments', 'current_assets', 'misc_expenses_asset', 'sundry_debitor']);
+    const assetCategories = new Set(['cash_in_hand', 'fixed_assets', 'investments', 'current_assets', 'misc_expenses_asset', 'sundry_debtor']);
     const liabilityCategories = new Set(['capital_account', 'loans_liability', 'current_liabilities', 'sundry_creditor']);
 
     const assets: Array<{ name: string; amount: number }> = [];
@@ -623,7 +623,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
     const receivables: Array<{ name: string; amount: number; phone: string | null }> = [];
     const payables: Array<{ name: string; amount: number; phone: string | null }> = [];
     for (const cb of contactBalances) {
-      if (cb.category === 'sundry_debitor' || cb.category === 'individual') {
+      if (cb.category === 'sundry_debtor' || cb.category === 'individual') {
         if (cb.balance > 0) receivables.push({ name: cb.name, amount: cb.balance, phone: cb.phone });
         else if (cb.balance < 0) payables.push({ name: cb.name, amount: Math.abs(cb.balance), phone: cb.phone });
       } else if (cb.category === 'sundry_creditor') {
