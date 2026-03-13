@@ -18,6 +18,27 @@ exception
 end
 $$;
 
+do $$
+begin
+  alter type public.contact_category add value if not exists 'cash_in_hand';
+  alter type public.contact_category add value if not exists 'capital_account';
+  alter type public.contact_category add value if not exists 'loans_liability';
+  alter type public.contact_category add value if not exists 'current_liabilities';
+  alter type public.contact_category add value if not exists 'fixed_assets';
+  alter type public.contact_category add value if not exists 'investments';
+  alter type public.contact_category add value if not exists 'current_assets';
+  alter type public.contact_category add value if not exists 'misc_expenses_asset';
+  alter type public.contact_category add value if not exists 'sales_accounts';
+  alter type public.contact_category add value if not exists 'purchase_accounts';
+  alter type public.contact_category add value if not exists 'direct_income';
+  alter type public.contact_category add value if not exists 'indirect_income';
+  alter type public.contact_category add value if not exists 'direct_expenses';
+  alter type public.contact_category add value if not exists 'indirect_expenses';
+exception
+  when others then null;
+end
+$$;
+
 alter table public.contacts
   add column if not exists category public.contact_category not null default 'individual';
 
