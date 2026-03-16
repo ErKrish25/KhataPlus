@@ -3181,7 +3181,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       {/* ─── Journal Voucher Fullpage ─── */}
       {activeVoucherType === 'journal' && (
         <div className="invoice-fullpage">
-          <div className="invoice-fp-header" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)' }}>
+          <div className="invoice-fp-header">
             <button type="button" className="icon-btn" onClick={() => { setActiveVoucherType(null); resetVoucherForm(); }}>←</button>
             <h3>📓 Journal Voucher</h3>
           </div>
@@ -3284,7 +3284,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               <span>Journal Amount</span>
               <strong>₹{Number(voucherAmount || 0).toFixed(0)}</strong>
             </div>
-            <button type="button" className="invoice-fp-save-btn" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)' }} onClick={() => void submitJournal()}>
+            <button type="button" className="invoice-fp-save-btn" onClick={() => void submitJournal()}>
               Save Journal Entry
             </button>
           </div>
@@ -3294,7 +3294,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       {/* ─── Contra Voucher Fullpage ─── */}
       {activeVoucherType === 'contra' && (
         <div className="invoice-fullpage">
-          <div className="invoice-fp-header" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' }}>
+          <div className="invoice-fp-header">
             <button type="button" className="icon-btn" onClick={() => { setActiveVoucherType(null); resetVoucherForm(); }}>←</button>
             <h3>🔄 Contra Voucher</h3>
           </div>
@@ -3353,7 +3353,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               <span>Transfer Amount</span>
               <strong>₹{Number(voucherAmount || 0).toFixed(0)}</strong>
             </div>
-            <button type="button" className="invoice-fp-save-btn" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' }} onClick={() => void submitContra()}>
+            <button type="button" className="invoice-fp-save-btn" onClick={() => void submitContra()}>
               Save Contra Entry
             </button>
           </div>
@@ -3363,7 +3363,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       {/* ─── Credit Note Fullpage ─── */}
       {activeVoucherType === 'credit_note' && (
         <div className="invoice-fullpage">
-          <div className="invoice-fp-header" style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)' }}>
+          <div className="invoice-fp-header">
             <button type="button" className="icon-btn" onClick={() => { setActiveVoucherType(null); resetVoucherForm(); }}>←</button>
             <h3>📤 Credit Note</h3>
           </div>
@@ -3405,7 +3405,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               <span>Credit Note Amount</span>
               <strong>₹{Number(voucherAmount || 0).toFixed(0)}</strong>
             </div>
-            <button type="button" className="invoice-fp-save-btn" style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)' }} onClick={() => void submitCreditNote()}>
+            <button type="button" className="invoice-fp-save-btn" onClick={() => void submitCreditNote()}>
               Save Credit Note
             </button>
           </div>
@@ -3415,7 +3415,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       {/* ─── Debit Note Fullpage ─── */}
       {activeVoucherType === 'debit_note' && (
         <div className="invoice-fullpage">
-          <div className="invoice-fp-header" style={{ background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }}>
+          <div className="invoice-fp-header">
             <button type="button" className="icon-btn" onClick={() => { setActiveVoucherType(null); resetVoucherForm(); }}>←</button>
             <h3>📥 Debit Note</h3>
           </div>
@@ -3457,7 +3457,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               <span>Debit Note Amount</span>
               <strong>₹{Number(voucherAmount || 0).toFixed(0)}</strong>
             </div>
-            <button type="button" className="invoice-fp-save-btn" style={{ background: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)' }} onClick={() => void submitDebitNote()}>
+            <button type="button" className="invoice-fp-save-btn" onClick={() => void submitDebitNote()}>
               Save Debit Note
             </button>
           </div>
