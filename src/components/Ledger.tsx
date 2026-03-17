@@ -20,14 +20,14 @@ import {
 } from '../types';
 
 const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
-  'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
-  'linear-gradient(135deg, #10b981 0%, #3b82f6 100%)',
-  'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-  'linear-gradient(135deg, #14b8a6 0%, #06b6d4 100%)',
-  'linear-gradient(135deg, #f97316 0%, #eab308 100%)',
-  'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-  'linear-gradient(135deg, #ef4444 0%, #f97316 100%)',
+  'linear-gradient(135deg, #1d4ed8 0%, #6366f1 100%)',
+  'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+  'linear-gradient(135deg, #1e40af 0%, #6366f1 100%)',
+  'linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%)',
+  'linear-gradient(135deg, #2563eb 0%, #8b5cf6 100%)',
+  'linear-gradient(135deg, #1d4ed8 0%, #818cf8 100%)',
+  'linear-gradient(135deg, #3730a3 0%, #60a5fa 100%)',
+  'linear-gradient(135deg, #4338ca 0%, #3b82f6 100%)',
 ];
 
 function getAvatarGradient(name: string): string {
@@ -541,6 +541,21 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       })
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [invoiceHistory, entries, contacts, txnSearch]);
+
+  const billingSummary = useMemo(() => {
+    const totalSales = invoiceHistory
+      .filter((invoice) => invoice.kind === 'sale')
+      .reduce((sum, invoice) => sum + invoice.totalValue, 0);
+    const totalPurchases = invoiceHistory
+      .filter((invoice) => invoice.kind === 'purchase')
+      .reduce((sum, invoice) => sum + invoice.totalValue, 0);
+
+    return {
+      totalSales,
+      totalPurchases,
+      transactionCount: unifiedTransactions.length,
+    };
+  }, [invoiceHistory, unifiedTransactions]);
 
   // ─── REPORTS: Day Book ───
   const dayBookEntries = useMemo(() => {
@@ -1673,6 +1688,28 @@ export function Ledger({ userId, displayName }: LedgerProps) {
     await loadData(true);
   }
 
+  async function deleteEditedInventoryItem() {
+    if (!editInventoryItemDraft) return;
+
+    const itemId = editInventoryItemDraft.id;
+    const itemName = editInventoryItemDraft.name.trim() || 'this item';
+    if (!window.confirm(`Delete ${itemName}?`)) return;
+
+    const { error } = await supabase.from('inventory_items').delete().eq('id', itemId);
+
+    if (error) {
+      toast.show(error.message, 'error');
+      return;
+    }
+
+    setEditInventoryCategoryCustom('');
+    setEditInventoryItemDraft(null);
+    if (selectedInventoryItemId === itemId) {
+      setSelectedInventoryItemId('');
+    }
+    await loadData(true);
+  }
+
   async function deleteSelectedContact(contactId: string) {
     const { error } = await supabase
       .from('contacts')
@@ -2040,7 +2077,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
       {section === 'dashboard' ? (
         !selectedContact ? (
           <section className="ledger-home">
-            <div className="home-top">
+            <div className="home-top dashboard-top">
               <div className="home-header-row">
                 <div className="brand-row">
                   <h2>{displayName}</h2>
@@ -2050,7 +2087,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 </button>
               </div>
 
-              <div className="summary-card">
+              <div className="summary-card dashboard-summary-card">
                 <div className="summary-stats">
                   <div>
                     <p className="muted">You will give</p>
@@ -2070,8 +2107,8 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               </div>
             </div>
 
-            <div className="home-body with-footer-space">
-              <div className="search-row">
+            <div className="home-body dashboard-body with-footer-space">
+              <div className="search-row dashboard-search-row">
                 <input
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -2080,9 +2117,9 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 />
               </div>
 
-              <div className="party-list">
+              <div className="party-list dashboard-party-list">
                 {filteredContacts.map((contact) => (
-                  <button key={contact.id} className="party-row" onClick={() => setSelectedContactId(contact.id)}>
+                  <button key={contact.id} className="party-row dashboard-party-row" onClick={() => setSelectedContactId(contact.id)}>
                     <div className="party-avatar" style={{ background: getAvatarGradient(contact.name) }}>{contact.name[0]?.toUpperCase() ?? '?'}</div>
                     <div className="party-main">
                       <strong>{contact.name}</strong>
@@ -2253,76 +2290,76 @@ export function Ledger({ userId, displayName }: LedgerProps) {
         )
       ) : section === 'invoices' ? (
         <section className="ledger-home inventory-home">
-          <div className="home-top inventory-top">
-            <div className="home-header-row">
-              <div className="brand-row">
-                <h2>Invoices</h2>
+          <div className="home-top bills-top">
+            <div className="home-header-row bills-header-row">
+              <div className="brand-row bills-title-block">
+                <h2>Bills</h2>
               </div>
             </div>
 
-            <div className="summary-card inventory-summary-card">
-              <div className="summary-stats inventory-stats-three">
-                <div>
-                  <p className="muted">Type</p>
-                  <strong>{invoiceKind === 'purchase' ? 'Purchase' : 'Sales'}</strong>
-                </div>
-                <div>
-                  <p className="muted">Invoices</p>
-                  <strong>{invoiceHistory.length}</strong>
-                </div>
-                <div>
-                  <p className="muted">Lines</p>
-                  <strong>{invoiceHistory.reduce((sum, item) => sum + item.lineCount, 0)}</strong>
-                </div>
+            <div className="rpt-kpi-strip bills-kpi-strip">
+              <div className="rpt-kpi-card kpi-green">
+                <span className="rpt-kpi-label"><span className="rpt-kpi-dot dot-green" />Sales</span>
+                <span className="rpt-kpi-value">₹{billingSummary.totalSales.toFixed(0)}</span>
+              </div>
+              <div className="rpt-kpi-card kpi-red">
+                <span className="rpt-kpi-label"><span className="rpt-kpi-dot dot-red" />Purchases</span>
+                <span className="rpt-kpi-value">₹{billingSummary.totalPurchases.toFixed(0)}</span>
+              </div>
+              <div className="rpt-kpi-card kpi-blue">
+                <span className="rpt-kpi-label"><span className="rpt-kpi-dot dot-blue" />Transactions</span>
+                <span className="rpt-kpi-value">{billingSummary.transactionCount}</span>
               </div>
             </div>
           </div>
 
           <div className="home-body with-footer-space">
-            <div className="voucher-type-grid">
-              <button type="button" className="voucher-card voucher-sales" onClick={() => { setInvoiceKind('sale'); setActiveVoucherType('sales'); setShowInvoiceForm(true); }}>
+            <h4 className="rpt-section-header">Billing</h4>
+            <div className="voucher-type-grid bills-voucher-grid bills-voucher-grid-two">
+              <button type="button" className="voucher-card voucher-sales bills-card" onClick={() => { setInvoiceKind('sale'); setActiveVoucherType('sales'); setShowInvoiceForm(true); }}>
                 <span className="voucher-icon">↗</span>
-                <span>Sales</span>
+                <span className="rpt-card-title">Sales</span>
               </button>
-              <button type="button" className="voucher-card voucher-purchase" onClick={() => { setInvoiceKind('purchase'); setActiveVoucherType('purchase'); setShowInvoiceForm(true); }}>
+              <button type="button" className="voucher-card voucher-purchase bills-card" onClick={() => { setInvoiceKind('purchase'); setActiveVoucherType('purchase'); setShowInvoiceForm(true); }}>
                 <span className="voucher-icon">↙</span>
-                <span>Purchase</span>
-              </button>
-              <button type="button" className="voucher-card voucher-payment" onClick={() => { setActiveVoucherType('payment'); resetVoucherForm(); }}>
-                <span className="voucher-icon">💳</span>
-                <span>Payment</span>
-              </button>
-              <button type="button" className="voucher-card voucher-receipt" onClick={() => { setActiveVoucherType('receipt'); resetVoucherForm(); }}>
-                <span className="voucher-icon">📥</span>
-                <span>Receipt</span>
-              </button>
-              <button type="button" className="voucher-card voucher-journal" onClick={() => { setActiveVoucherType('journal'); resetVoucherForm(); }}>
-                <span className="voucher-icon">📓</span>
-                <span>Journal</span>
-              </button>
-              <button type="button" className="voucher-card voucher-contra" onClick={() => { setActiveVoucherType('contra'); resetVoucherForm(); }}>
-                <span className="voucher-icon">🔄</span>
-                <span>Contra</span>
-              </button>
-              <button type="button" className="voucher-card voucher-creditnote" onClick={() => { setActiveVoucherType('credit_note'); resetVoucherForm(); }}>
-                <span className="voucher-icon">📤</span>
-                <span>Cr. Note</span>
-              </button>
-              <button type="button" className="voucher-card voucher-debitnote" onClick={() => { setActiveVoucherType('debit_note'); resetVoucherForm(); }}>
-                <span className="voucher-icon">📥</span>
-                <span>Dr. Note</span>
+                <span className="rpt-card-title">Purchase</span>
               </button>
             </div>
 
-            {/* ─── Search bar ─── */}
-            <div className="txn-search-bar">
+            <h4 className="rpt-section-header">Vouchers</h4>
+            <div className="voucher-type-grid bills-voucher-grid">
+              <button type="button" className="voucher-card voucher-payment bills-card" onClick={() => { setActiveVoucherType('payment'); resetVoucherForm(); }}>
+                <span className="voucher-icon">💳</span>
+                <span className="rpt-card-title">Payment</span>
+              </button>
+              <button type="button" className="voucher-card voucher-receipt bills-card" onClick={() => { setActiveVoucherType('receipt'); resetVoucherForm(); }}>
+                <span className="voucher-icon">📥</span>
+                <span className="rpt-card-title">Receipt</span>
+              </button>
+              <button type="button" className="voucher-card voucher-journal bills-card" onClick={() => { setActiveVoucherType('journal'); resetVoucherForm(); }}>
+                <span className="voucher-icon">📓</span>
+                <span className="rpt-card-title">Journal</span>
+              </button>
+              <button type="button" className="voucher-card voucher-contra bills-card" onClick={() => { setActiveVoucherType('contra'); resetVoucherForm(); }}>
+                <span className="voucher-icon">🔄</span>
+                <span className="rpt-card-title">Contra</span>
+              </button>
+              <button type="button" className="voucher-card voucher-creditnote bills-card" onClick={() => { setActiveVoucherType('credit_note'); resetVoucherForm(); }}>
+                <span className="voucher-icon">📤</span>
+                <span className="rpt-card-title">Cr. Note</span>
+              </button>
+              <button type="button" className="voucher-card voucher-debitnote bills-card" onClick={() => { setActiveVoucherType('debit_note'); resetVoucherForm(); }}>
+                <span className="voucher-icon">📥</span>
+                <span className="rpt-card-title">Dr. Note</span>
+              </button>
+            </div>
+
+            <h4 className="rpt-section-header">Recent Transactions</h4>
+            <div className="txn-search-bar bills-search-shell">
               <input type="text" placeholder="Search transactions..." value={txnSearch} onChange={e => setTxnSearch(e.target.value)} className="txn-search-input" />
             </div>
 
-            {unifiedTransactions.length > 0 && (
-              <p className="txn-section-header">Recent Transactions ({unifiedTransactions.length})</p>
-            )}
-            <div className="invoice-history-list">
+            <div className="invoice-history-list bills-history-list">
               {unifiedTransactions.map((txn) => {
                 const typeConfig: Record<string, { icon: string; badge: string; cls: string; sign: string }> = {
                   sale: { icon: '↗', badge: 'Sale', cls: 'txn-type-sale', sign: '+' },
@@ -2339,10 +2376,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 return (
                   <div
                     key={txn.id}
-                    className="invoice-history-card"
+                    className="invoice-history-card bills-history-card"
                     onClick={() => txn.invoiceId ? setInvoiceActionTargetId(txn.invoiceId) : null}
                   >
-                    <div className="invoice-history-left" style={{ flex: 1 }}>
+                    <div className="invoice-history-left bills-history-left">
                       <div className={`txn-type-icon ${cfg.cls}`}>{cfg.icon}</div>
                       <div>
                         <p className="invoice-party">{txn.party}</p>
@@ -2352,7 +2389,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                         </p>
                       </div>
                     </div>
-                    <div className="invoice-history-right" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                    <div className="invoice-history-right bills-history-right">
                       <p className={cfg.sign === '+' ? 'amount-positive' : cfg.sign === '-' ? 'amount-negative' : ''}>
                         {cfg.sign}₹{txn.amount.toFixed(0)}
                       </p>
@@ -2360,8 +2397,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                     </div>
                     {txn.invoiceId && (
                       <button
-                        className="icon-btn"
-                        style={{ marginLeft: '8px', padding: '6px' }}
+                        className="icon-btn bills-edit-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           openInvoiceEditor(txn.invoiceId!);
@@ -2474,7 +2510,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               </div>
             </div>
 
-            <div className="summary-card inventory-summary-card">
+            <div className="summary-card inventory-summary-card inventory-top-summary-card">
               <div className="summary-stats inventory-stats-three">
                 <div>
                   <p className="muted">Items</p>
@@ -2493,7 +2529,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
           </div>
 
           <div className="home-body inventory-body with-footer-space">
-            <div className="search-row search-row-with-action">
+            <div className="search-row search-row-with-action inventory-search-row">
               <input
                 value={inventorySearchText}
                 onChange={(e) => setInventorySearchText(e.target.value)}
@@ -2504,7 +2540,7 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 Scan
               </button>
             </div>
-            <div className="inventory-category-strip">
+            <div className="inventory-category-strip inventory-filter-strip">
               <button
                 type="button"
                 className={inventoryCategoryFilter === 'ALL' ? 'active' : ''}
@@ -2524,12 +2560,12 @@ export function Ledger({ userId, displayName }: LedgerProps) {
               ))}
             </div>
 
-            <div className="party-list inventory-list">
+            <div className="party-list inventory-list inventory-card-list">
               {filteredInventoryItems.map((item) => (
                 <button
                   key={item.id}
                   type="button"
-                  className="party-row inventory-row"
+                  className="party-row inventory-row inventory-card-row"
                   onClick={() => setSelectedInventoryItemId(item.id)}
                 >
                   <div className="party-avatar">{item.name[0]?.toUpperCase() ?? '?'}</div>
@@ -4233,6 +4269,13 @@ export function Ledger({ userId, displayName }: LedgerProps) {
                 required
               />
             )}
+            <button
+              type="button"
+              className="danger-solid"
+              onClick={() => void deleteEditedInventoryItem()}
+            >
+              Delete Item
+            </button>
             <div className="row">
               <button
                 type="button"
