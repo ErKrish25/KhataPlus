@@ -361,6 +361,23 @@ export function Ledger({ userId, displayName }: LedgerProps) {
     };
   }, [inventoryItemsWithStock]);
 
+  const reportTitle =
+    reportsView === 'hub'
+      ? 'Reports'
+      : reportsView === 'daybook'
+        ? 'Day Book'
+        : reportsView === 'cashbook'
+          ? 'Cash/Bank Book'
+          : reportsView === 'trial_balance'
+            ? 'Trial Balance'
+            : reportsView === 'profit_loss'
+              ? 'Profit & Loss'
+              : reportsView === 'balance_sheet'
+                ? 'Balance Sheet'
+                : reportsView === 'outstanding'
+                  ? 'Outstanding'
+                  : 'Stock Summary';
+
   const selectedInventoryMovements = useMemo(() => {
     return inventoryMovements.filter((movement) => movement.item_id === selectedInventoryItemId);
   }, [inventoryMovements, selectedInventoryItemId]);
@@ -2701,61 +2718,111 @@ export function Ledger({ userId, displayName }: LedgerProps) {
 
       {/* ─── Reports Section ─── */}
       {section === 'reports' && (
-        <section className="home-page animate-fade-in">
-          <div className="home-header">
-            <div className="home-header-inner">
+        <section className="ledger-home animate-fade-in">
+          <div className="home-top reports-top">
+            <div className="home-header-row reports-header-row">
               {reportsView !== 'hub' && (
-                <button type="button" className="icon-btn" onClick={() => setReportsView('hub')}>←</button>
+                <button
+                  type="button"
+                  className="icon-btn reports-back-btn"
+                  onClick={() => setReportsView('hub')}
+                  aria-label="Back to reports"
+                >
+                  ←
+                </button>
               )}
-              <h2>{reportsView === 'hub' ? 'Reports' : reportsView === 'daybook' ? 'Day Book' : reportsView === 'cashbook' ? 'Cash/Bank Book' : reportsView === 'trial_balance' ? 'Trial Balance' : reportsView === 'profit_loss' ? 'Profit & Loss' : reportsView === 'balance_sheet' ? 'Balance Sheet' : reportsView === 'outstanding' ? 'Outstanding' : 'Stock Summary'}</h2>
-              <button type="button" className="icon-btn" onClick={() => setShowSettingsMenu(true)}>⚙</button>
+              <div className="brand-row reports-title-block">
+                <h2>{reportTitle}</h2>
+              </div>
             </div>
+
+            {reportsView === 'hub' && (
+              <div className="rpt-kpi-strip reports-kpi-strip">
+                <div className="rpt-kpi-card kpi-blue">
+                  <span className="rpt-kpi-label"><span className="rpt-kpi-dot dot-blue" />Net Position</span>
+                  <span className="rpt-kpi-value">₹{totals.totalBalance.toFixed(0)}</span>
+                </div>
+                <div className="rpt-kpi-card kpi-green">
+                  <span className="rpt-kpi-label"><span className="rpt-kpi-dot dot-green" />Income</span>
+                  <span className="rpt-kpi-value">₹{profitLoss.totalIncome.toFixed(0)}</span>
+                </div>
+                <div className="rpt-kpi-card kpi-red">
+                  <span className="rpt-kpi-label"><span className="rpt-kpi-dot dot-red" />Expenses</span>
+                  <span className="rpt-kpi-value">₹{profitLoss.totalExpenses.toFixed(0)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="home-body with-footer-space">
             {reportsView === 'hub' && (
-              <div className="reports-hub-grid">
-                <button className="report-card report-card-daybook" onClick={() => setReportsView('daybook')}>
-                  <span className="report-card-icon">📅</span>
-                  <span className="report-card-title">Day Book</span>
-                  <span className="report-card-desc">All entries by date</span>
-                </button>
-                <button className="report-card report-card-cashbook" onClick={() => setReportsView('cashbook')}>
-                  <span className="report-card-icon">💵</span>
-                  <span className="report-card-title">Cash/Bank Book</span>
-                  <span className="report-card-desc">Cash & bank movements</span>
-                </button>
-                <button className="report-card report-card-trial" onClick={() => setReportsView('trial_balance')}>
-                  <span className="report-card-icon">⚖️</span>
-                  <span className="report-card-title">Trial Balance</span>
-                  <span className="report-card-desc">Dr & Cr totals</span>
-                </button>
-                <button className="report-card report-card-pl" onClick={() => setReportsView('profit_loss')}>
-                  <span className="report-card-icon">📊</span>
-                  <span className="report-card-title">Profit & Loss</span>
-                  <span className="report-card-desc">Income vs Expenses</span>
-                </button>
-                <button className="report-card report-card-bs" onClick={() => setReportsView('balance_sheet')}>
-                  <span className="report-card-icon">🏦</span>
-                  <span className="report-card-title">Balance Sheet</span>
-                  <span className="report-card-desc">Assets & Liabilities</span>
-                </button>
-                <button className="report-card report-card-outstanding" onClick={() => setReportsView('outstanding')}>
-                  <span className="report-card-icon">💰</span>
-                  <span className="report-card-title">Outstanding</span>
-                  <span className="report-card-desc">Receivables & Payables</span>
-                </button>
-                <button className="report-card report-card-stock" onClick={() => setReportsView('stock_summary')}>
-                  <span className="report-card-icon">📦</span>
-                  <span className="report-card-title">Stock Summary</span>
-                  <span className="report-card-desc">Inventory levels</span>
-                </button>
-              </div>
+              <>
+                {/* Transaction Books */}
+                <h4 className="rpt-section-header">Transaction Books</h4>
+                <div className="rpt-row">
+                  <button className="rpt-card" onClick={() => setReportsView('daybook')}>
+                    <span className="rpt-card-icon rpt-icon-daybook">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Day Book</span>
+                  </button>
+                  <button className="rpt-card" onClick={() => setReportsView('cashbook')}>
+                    <span className="rpt-card-icon rpt-icon-cashbook">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Cash & Bank</span>
+                  </button>
+                </div>
+
+                {/* Financial Statements */}
+                <h4 className="rpt-section-header">Financial Statements</h4>
+                <div className="rpt-row rpt-row-3">
+                  <button className="rpt-card" onClick={() => setReportsView('trial_balance')}>
+                    <span className="rpt-card-icon rpt-icon-trial">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><path d="M5 8l7-5 7 5"/><path d="M3 21h18"/><rect x="4" y="11" width="4" height="7" rx="1"/><rect x="16" y="11" width="4" height="7" rx="1"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Trial Balance</span>
+                  </button>
+                  <button className="rpt-card" onClick={() => setReportsView('profit_loss')}>
+                    <span className="rpt-card-icon rpt-icon-pl">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Profit & Loss</span>
+                  </button>
+                  <button className="rpt-card" onClick={() => setReportsView('balance_sheet')}>
+                    <span className="rpt-card-icon rpt-icon-bs">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="8" y1="14" x2="16" y2="14"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Balance Sheet</span>
+                  </button>
+                </div>
+
+                {/* Analysis */}
+                <h4 className="rpt-section-header">Analysis</h4>
+                <div className="rpt-row">
+                  <button className="rpt-card" onClick={() => setReportsView('outstanding')}>
+                    <span className="rpt-card-icon rpt-icon-outstanding">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Outstanding</span>
+                  </button>
+                  <button className="rpt-card" onClick={() => setReportsView('stock_summary')}>
+                    <span className="rpt-card-icon rpt-icon-stock">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    </span>
+                    <span className="rpt-card-title">Stock Summary</span>
+                  </button>
+                </div>
+              </>
             )}
 
             {/* ─── Day Book ─── */}
             {reportsView === 'daybook' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-daybook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+                  <h3>Day Book</h3>
+                </div>
                 <div className="report-date-filter">
                   <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)} />
                   <span>to</span>
@@ -2788,6 +2855,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
             {/* ─── Cash/Bank Book ─── */}
             {reportsView === 'cashbook' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-cashbook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+                  <h3>Cash & Bank Book</h3>
+                </div>
                 <div className="report-date-filter">
                   <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)} />
                   <span>to</span>
@@ -2820,6 +2891,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
             {/* ─── Trial Balance ─── */}
             {reportsView === 'trial_balance' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-trial"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><path d="M5 8l7-5 7 5"/><path d="M3 21h18"/><rect x="4" y="11" width="4" height="7" rx="1"/><rect x="16" y="11" width="4" height="7" rx="1"/></svg></span>
+                  <h3>Trial Balance</h3>
+                </div>
                 <div className="report-table">
                   <div className="report-table-head">
                     <span>Ledger</span><span>Debit ₹</span><span>Credit ₹</span>
@@ -2847,6 +2922,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
             {/* ─── Profit & Loss ─── */}
             {reportsView === 'profit_loss' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-pl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+                  <h3>Profit & Loss</h3>
+                </div>
                 <div className="report-pl-section">
                   <h4 className="report-section-title income-title">Income</h4>
                   {profitLoss.income.length === 0 && <p className="muted empty-text">No income recorded</p>}
@@ -2885,6 +2964,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
             {/* ─── Balance Sheet ─── */}
             {reportsView === 'balance_sheet' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-bs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="8" y1="14" x2="16" y2="14"/></svg></span>
+                  <h3>Balance Sheet</h3>
+                </div>
                 <div className="report-bs-section">
                   <h4 className="report-section-title asset-title">Assets</h4>
                   {balanceSheet.assets.length === 0 && <p className="muted empty-text">No assets</p>}
@@ -2929,6 +3012,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
             {/* ─── Outstanding ─── */}
             {reportsView === 'outstanding' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-outstanding"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                  <h3>Outstanding</h3>
+                </div>
                 <div className="report-tabs">
                   <button className={outstandingTab === 'receivable' ? 'active' : ''} onClick={() => setOutstandingTab('receivable')}>
                     Receivable ({outstanding.receivables.length})
@@ -2981,6 +3068,10 @@ export function Ledger({ userId, displayName }: LedgerProps) {
             {/* ─── Stock Summary ─── */}
             {reportsView === 'stock_summary' && (
               <div className="report-detail">
+                <div className="rpt-detail-title">
+                  <span className="rpt-detail-title-icon rpt-icon-stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+                  <h3>Stock Summary</h3>
+                </div>
                 <div className="report-stock-summary-header">
                   <span>{stockSummary.totalItems} items</span>
                   <span>Total stock: {stockSummary.totalStock.toFixed(0)}</span>
